@@ -1,4 +1,5 @@
 #include "radio.h"
+#include <cstdio>
 
 #if defined(SX128x_H)
     #define BW_KHZ              200
@@ -18,6 +19,34 @@
 
 /**********************************************************************/
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
+
+TIM_HandleTypeDef htim10;
+static void MX_TIM10_Init(void)
+{
+
+  /* USER CODE BEGIN TIM10_Init 0 */
+
+  /* USER CODE END TIM10_Init 0 */
+
+  /* USER CODE BEGIN TIM10_Init 1 */
+
+  /* USER CODE END TIM10_Init 1 */
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 0;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 65535;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  //htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  {
+    printf("Error Error\r\n");
+  }
+  /* USER CODE BEGIN TIM10_Init 2 */
+
+  /* USER CODE END TIM10_Init 2 */
+
+}
+
 
 void tx_test()
 {
@@ -70,6 +99,7 @@ int main()
 {
     printf("\r\nreset-tx ");
 
+    __HAL_RCC_TIM10_CLK_ENABLE(); // Enable clock for timer
     Radio::Init(&rev);
 
     Radio::Standby();
@@ -80,6 +110,14 @@ int main()
 
                // preambleLen, fixLen, crcOn, invIQ
     Radio::LoRaPacketConfig(8, false, true, false);
+    MX_TIM10_Init();
+    HAL_TIM_Base_Start_IT(&htim10);
+    uint16_t timer_val = __HAL_TIM_GET_COUNTER(&htim10); // get the counter value of timer
+    while (1) {
+        HAL_Delay(500);
+        timer_val = __HAL_TIM_GET_COUNTER(&htim10) - timer_val;
+        printf("\r\ntimer value = %d", timer_val);
+    }
 
     queue.call_in(500, tx_test);
 
