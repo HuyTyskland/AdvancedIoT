@@ -1,0 +1,4 @@
+BUILD
+.mbed
+mbed-os
+sx12xx_hal
