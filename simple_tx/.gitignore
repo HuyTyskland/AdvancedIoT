@@ -1,4 +1,6 @@
 BUILD
 .mbed
+.lib
+.i
 mbed-os
 sx12xx_hal
