@@ -1,5 +1,4 @@
 #include "radio.h"
-#include <cstdint>
 
 #if defined(SX128x_H)
     #define BW_KHZ              200
@@ -19,8 +18,6 @@
 
 /**********************************************************************/
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
-uint8_t theCount_transmit = 0;
-uint8_t theCount_receive = 0;
 
 void tx_test()
 {
@@ -40,39 +37,14 @@ void tx_test()
     }*/
 }
 
-void rx_test()
-{
-    printf("receive\r\n");
-}
-
 void txDoneCB()
 {
     printf("got-tx-done\r\n");
-    if (theCount_receive == 10)
-    {
-        queue.break_dispatch();
-        queue.call_in(500, rx_test);
-        theCount_receive = 0;
-        queue.dispatch();
-    } else  {
-        queue.call_in(500, tx_test);
-        theCount_receive++;
-    }
+    queue.call_in(500, tx_test);
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    printf("got-rx-done A20\r\n");
-    if (theCount_transmit == 10)
-    {
-        queue.break_dispatch();
-        queue.call_in(500, tx_test);
-        theCount_transmit = 0;
-        queue.dispatch();
-    } else  {
-        queue.call_in(500, rx_test);
-        theCount_transmit++;
-    }
 }
 
 
@@ -110,8 +82,6 @@ int main()
     Radio::LoRaPacketConfig(8, false, true, false);
 
     queue.call_in(500, tx_test);
-    //Radio::Rx(0);
 
     queue.dispatch();
 }
-

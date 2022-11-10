@@ -13,7 +13,7 @@
     #endif
     #define BW_KHZ              125
     #define SPREADING_FACTOR    7
-    #define CF_HZ               915000000
+    #define CF_HZ               868300000
 #endif
 
 DigitalOut myled(LED1);
