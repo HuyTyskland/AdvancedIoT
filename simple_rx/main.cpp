@@ -62,7 +62,10 @@ int main()
                // preambleLen, fixLen, crcOn, invIQ
     Radio::LoRaPacketConfig(8, false, true, false);
 
-    Radio::Rx(0);
+    
+    printf("start receiving\r\n");
+    Radio::Rx(10000000);
+    printf("nothing to be received\r\n");
     
     for (;;) {     
         Radio::service();
