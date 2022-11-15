@@ -42,5 +42,5 @@ void syncNode(uint8_t *ptrSyncNode)
     }
 
     // After sending synchronization request, listen
-    Radio::Rx(0);
+    Radio::Rx(10000);
 }

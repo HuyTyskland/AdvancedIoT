@@ -6,3 +6,4 @@
 #define TRANSMITMODE 33333
 #define ALLSYNC 1
 #define ALLNOTSYNC 0
+#define READY 2

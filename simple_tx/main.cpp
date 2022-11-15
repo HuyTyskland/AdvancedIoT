@@ -28,19 +28,17 @@ uint8_t syncStatus[NUMANCHOR] = {0,0,0,0};
 
 void tx_test()
 {
-    static uint8_t seq = 0;
+    // static uint8_t seq = 0;
 
-    Radio::radio.tx_buf[0] = seq++;  /* set payload */
-    Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    printf("sent\r\n");
+    // Radio::radio.tx_buf[0] = seq++;  /* set payload */
+    // Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    // printf("sent\r\n");
+    if (areSync(syncStatus))
+    {
+        syncNode(syncStatus);
+    }
 
     // check if the condition is met => change to receive mode
-    countSend++;
-    if (countSend == 10)
-    {
-        countSend = 0;
-        Radio::Rx(0);
-    }
 }
 
 void txDoneCB()
@@ -58,17 +56,9 @@ void txDoneCB()
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
     // do something with received data
-    printf("Receive something \r\n");
-    countReceive++;
-    printf("countReceive: %d\r\n", countReceive);
-    // check if the condition is met => change to transmit mode
-    if (countReceive == 10)
+    if (Radio::radio.rx_buf[0] == READY)
     {
-        countReceive = 0;
-        //Send stuff to change to sending mode
-        Radio::radio.tx_buf[0] = 99;
-        Radio::Send(1, 0, 0, 0);
-        printf("sent\r\n");
+        
     }
 }
 

@@ -13,3 +13,5 @@ void syncNode(uint8_t*);
 // Check which node is the first node that is not in sync in the synchronizing status array
 //  * input: the synchronizing status of node
 uint8_t nodeNotSync(uint8_t*);
+
+// Put current counter into multiple 8-bit chunk
