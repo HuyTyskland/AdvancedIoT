@@ -1,4 +1,4 @@
-#include "radio.h"
+#include "time_info.h"
 
 #if defined(SX128x_H)
     #define BW_KHZ              200
@@ -80,6 +80,10 @@ int main()
 
                // preambleLen, fixLen, crcOn, invIQ
     Radio::LoRaPacketConfig(8, false, true, false);
+
+    // Init timer and counter
+    MX_TIM10_Init();
+    counter_init();
 
     queue.call_in(500, tx_test);
 
