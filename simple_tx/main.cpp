@@ -14,7 +14,7 @@
     #endif
     #define BW_KHZ              125
     #define SPREADING_FACTOR    7
-    #define CF_HZ               915000000
+    #define CF_HZ               868300000
 #endif
 
 /**********************************************************************/
@@ -47,33 +47,19 @@ static void MX_TIM10_Init(void)
 
 }
 
+void rx_test();
 
-void tx_test()
-{
-    static uint8_t seq = 0;
-
-    Radio::radio.tx_buf[0] = seq++;  /* set payload */
-    Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    printf("sent\r\n");
-
-/*    {
-        mbed_stats_cpu_t stats;
-        mbed_stats_cpu_get(&stats);
-        printf("canDeep:%u ", sleep_manager_can_deep_sleep());
-        printf("Uptime: %llu ", stats.uptime / 1000);
-        printf("Sleep time: %llu ", stats.sleep_time / 1000);
-        printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
-    }*/
-}
+void tx_test();
 
 void txDoneCB()
 {
-    printf("got-tx-done\r\n");
+    printf("got-TX-done\r\n");
     queue.call_in(500, tx_test);
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
+    printf("got-RX-done\r\n");
 }
 
 
@@ -112,15 +98,40 @@ int main()
     Radio::LoRaPacketConfig(8, false, true, false);
     MX_TIM10_Init();
     HAL_TIM_Base_Start_IT(&htim10);
-    uint16_t timer_val = __HAL_TIM_GET_COUNTER(&htim10); // get the counter value of timer
-    while (1) {
-        HAL_Delay(500);
-        timer_val = __HAL_TIM_GET_COUNTER(&htim10) - timer_val;
-        printf("\r\ntimer value = %d", timer_val);
-    }
+    // uint16_t timer_val = __HAL_TIM_GET_COUNTER(&htim10); // get the counter value of timer
+    // while (1) {
+    //     HAL_Delay(500);
+    //     timer_val = __HAL_TIM_GET_COUNTER(&htim10) - timer_val;
+    //     printf("\r\ntimer value = %d", timer_val);
+    // }
 
     queue.call_in(500, tx_test);
 
     queue.dispatch();
 }
 
+void rx_test()
+{
+    Radio::Rx(10000);
+    printf("received\r\n");
+    queue.call_in(500, tx_test);
+}
+
+void tx_test()
+{
+    static uint8_t seq = 0;
+
+    Radio::radio.tx_buf[0] = seq++;  /* set payload */
+    Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    printf("sent\r\n");
+
+/*    {
+        mbed_stats_cpu_t stats;
+        mbed_stats_cpu_get(&stats);
+        printf("canDeep:%u ", sleep_manager_can_deep_sleep());
+        printf("Uptime: %llu ", stats.uptime / 1000);
+        printf("Sleep time: %llu ", stats.sleep_time / 1000);
+        printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
+    }*/
+    rx_test();
+}
