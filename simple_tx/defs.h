@@ -7,3 +7,9 @@
 #define ALLNOTSYNC 0
 #define READY 2
 #define SYNCHRONIZED 3
+
+typedef enum {
+  call_to_sync_state,
+  sync_state,
+  normal_state
+} states;
