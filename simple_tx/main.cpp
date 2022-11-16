@@ -54,9 +54,29 @@ static void MX_TIM10_Init(void)
 
 }
 
-void rx_test();
+void rx_test()
+{
+}
 
-void tx_test();
+void tx_test()
+{
+    static uint8_t seq = 0;
+
+    Radio::radio.tx_buf[0] = 99;  /* set payload */
+    printf("send a ready message\r\n");
+    Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    send_time = __HAL_TIM_GET_COUNTER(&htim10);
+
+/*    {
+        mbed_stats_cpu_t stats;
+        mbed_stats_cpu_get(&stats);
+        printf("canDeep:%u ", sleep_manager_can_deep_sleep());
+        printf("Uptime: %llu ", stats.uptime / 1000);
+        printf("Sleep time: %llu ", stats.sleep_time / 1000);
+        printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
+    }*/
+    Radio::Rx(0);
+}
 
 void txDoneCB()
 {
@@ -66,11 +86,16 @@ void txDoneCB()
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    receive_time = __HAL_TIM_GET_COUNTER(&htim10);
-    time_difference = (receive_time - send_time) >> 1;
-    uint32_t distance = time_difference * 10 / 3;
-    printf("Distance: %" PRIu32 "\n", distance);
-    queue.call_in(500, tx_test);
+    if (Radio::radio.rx_buf[0] == 99)
+    {
+        receive_time = __HAL_TIM_GET_COUNTER(&htim10);
+        time_difference = (receive_time - send_time) >> 1;
+        uint32_t distance = time_difference * 10 / 3;
+        printf("Distance: %" PRIu32 "\n", distance);
+    }
+    Radio::radio.tx_buf[0] = 0;  /* set payload */
+    Radio::Send(1, 0, 0, 0);
+    //queue.call_in(500, tx_test);
 }
 
 
@@ -119,31 +144,4 @@ int main()
     queue.call_in(500, tx_test);
 
     queue.dispatch();
-}
-
-void rx_test()
-{
-    Radio::Rx(10000);
-    printf("received\r\n");
-    queue.call_in(500, tx_test);
-}
-
-void tx_test()
-{
-    static uint8_t seq = 0;
-
-    Radio::radio.tx_buf[0] = 99;  /* set payload */
-    printf("send a ready message\r\n");
-    Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    send_time = __HAL_TIM_GET_COUNTER(&htim10);
-
-/*    {
-        mbed_stats_cpu_t stats;
-        mbed_stats_cpu_get(&stats);
-        printf("canDeep:%u ", sleep_manager_can_deep_sleep());
-        printf("Uptime: %llu ", stats.uptime / 1000);
-        printf("Sleep time: %llu ", stats.sleep_time / 1000);
-        printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
-    }*/
-    Radio::Rx(10000);
 }

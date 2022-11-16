@@ -13,7 +13,7 @@
     #endif
     #define BW_KHZ              125
     #define SPREADING_FACTOR    7
-    #define CF_HZ               915000000
+    #define CF_HZ               868300000
 #endif
 
 DigitalOut myled(LED1);
@@ -26,15 +26,22 @@ void txDoneCB()
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    unsigned i;
-    printf("%.1fdBm  snr:%.1fdB\t", rssi, snr);
+    // unsigned i;
+    // printf("%.1fdBm  snr:%.1fdB\t", rssi, snr);
 
-    myled.write(!myled.read()); // toggle LED
+    // myled.write(!myled.read()); // toggle LED
 
-    for (i = 0; i < size; i++) {
-        printf("%02x ", Radio::radio.rx_buf[i]);
+    // for (i = 0; i < size; i++) {
+    //     printf("%02x ", Radio::radio.rx_buf[i]);
+    // }
+    // printf("\r\n");4
+    printf("received data: %d\r\n", Radio::radio.rx_buf[0]);
+    if (Radio::radio.rx_buf[0] == 99)
+    {
+        Radio::radio.tx_buf[0] = 99;  /* set payload */
+        Radio::Send(1, 0, 0, 0);   /* begin transmission */
+        printf("sent\r\n");
     }
-    printf("\r\n");
 }
 
 const RadioEvents_t rev = {
