@@ -1,5 +1,7 @@
 #include "radio.h"
+#include <cstdint>
 #include <cstdio>
+#include <inttypes.h>
 
 #if defined(SX128x_H)
     #define BW_KHZ              200
@@ -19,6 +21,11 @@
 
 /**********************************************************************/
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
+
+// Time-difference measure
+uint32_t send_time = 0;
+uint32_t receive_time = 0;
+uint32_t time_difference = 0;
 
 TIM_HandleTypeDef htim10;
 static void MX_TIM10_Init(void)
@@ -59,7 +66,11 @@ void txDoneCB()
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    printf("got-RX-done\r\n");
+    receive_time = __HAL_TIM_GET_COUNTER(&htim10);
+    time_difference = (receive_time - send_time) >> 1;
+    uint32_t distance = time_difference * 10 / 3;
+    printf("Distance: %" PRIu32 "\n", distance);
+    queue.call_in(500, tx_test);
 }
 
 
@@ -121,9 +132,10 @@ void tx_test()
 {
     static uint8_t seq = 0;
 
-    Radio::radio.tx_buf[0] = seq++;  /* set payload */
+    Radio::radio.tx_buf[0] = 99;  /* set payload */
+    printf("send a ready message\r\n");
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    printf("sent\r\n");
+    send_time = __HAL_TIM_GET_COUNTER(&htim10);
 
 /*    {
         mbed_stats_cpu_t stats;
@@ -133,5 +145,5 @@ void tx_test()
         printf("Sleep time: %llu ", stats.sleep_time / 1000);
         printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
     }*/
-    rx_test();
+    Radio::Rx(10000);
 }
