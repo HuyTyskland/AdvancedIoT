@@ -26,15 +26,18 @@ void txDoneCB()
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    unsigned i;
-    printf("%.1fdBm  snr:%.1fdB\t", rssi, snr);
+    // unsigned i;
+    // printf("%.1fdBm  snr:%.1fdB\t", rssi, snr);
 
-    myled.write(!myled.read()); // toggle LED
+    // myled.write(!myled.read()); // toggle LED
 
-    for (i = 0; i < size; i++) {
-        printf("%02x ", Radio::radio.rx_buf[i]);
-    }
-    printf("\r\n");
+    // for (i = 0; i < size; i++) {
+    //     printf("%02x ", Radio::radio.rx_buf[i]);
+    // }
+    // printf("\r\n");
+    Radio::radio.tx_buf[0] = 99;  /* set payload */
+    Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    printf("sent\r\n");
 }
 
 const RadioEvents_t rev = {
@@ -62,10 +65,7 @@ int main()
                // preambleLen, fixLen, crcOn, invIQ
     Radio::LoRaPacketConfig(8, false, true, false);
 
-    
-    printf("start receiving\r\n");
-    Radio::Rx(10000000);
-    printf("nothing to be received\r\n");
+    Radio::Rx(0);
     
     for (;;) {     
         Radio::service();
