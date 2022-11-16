@@ -21,11 +21,16 @@
 
 /**********************************************************************/
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
+#define DELAY_TIME 90000000
+uint8_t seq = 95;
 
 // Time-difference measure
 uint32_t send_time = 0;
 uint32_t receive_time = 0;
+uint32_t mode_changing_time = 0;
 uint32_t time_difference = 0;
+
+uint8_t send_countdown = 5;
 
 TIM_HandleTypeDef htim10;
 static void MX_TIM10_Init(void)
@@ -60,12 +65,12 @@ void rx_test()
 
 void tx_test()
 {
-    static uint8_t seq = 0;
 
-    Radio::radio.tx_buf[0] = 99;  /* set payload */
+    Radio::radio.tx_buf[0] = seq++;  /* set payload */
     printf("send a ready message\r\n");
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
     send_time = __HAL_TIM_GET_COUNTER(&htim10);
+    // printf("send_time: %" PRIu32 "\n", send_time);
 
 /*    {
         mbed_stats_cpu_t stats;
@@ -75,26 +80,39 @@ void tx_test()
         printf("Sleep time: %llu ", stats.sleep_time / 1000);
         printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
     }*/
-    Radio::Rx(0);
+    if (send_countdown == 0)
+    {
+        Radio::Rx(0);
+        // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim10);
+        // printf("shift_time: %" PRIu32 "\n", shift_time);
+        // mode_changing_time = shift_time - send_time;
+        // printf("mode_changing_time: %" PRIu32 "\n", mode_changing_time);
+    }
 }
 
 void txDoneCB()
 {
     printf("got-TX-done\r\n");
+    send_countdown--;
     queue.call_in(500, tx_test);
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
-    if (Radio::radio.rx_buf[0] == 99)
+    if (Radio::radio.rx_buf[0] == 100)
     {
         receive_time = __HAL_TIM_GET_COUNTER(&htim10);
-        time_difference = (receive_time - send_time) >> 1;
+        printf("receive_time: %" PRIu32 "\n", receive_time);
+        printf("send_time: %" PRIu32 "\n", send_time);
+        time_difference = (receive_time - send_time - DELAY_TIME)/2;
         uint32_t distance = time_difference * 10 / 3;
         printf("Distance: %" PRIu32 "\n", distance);
     }
     Radio::radio.tx_buf[0] = 0;  /* set payload */
     Radio::Send(1, 0, 0, 0);
+    printf("start measuring again\r\n");
+    send_countdown = 6;
+    seq = 95;
     //queue.call_in(500, tx_test);
 }
 

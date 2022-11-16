@@ -22,6 +22,17 @@ DigitalOut myled(LED1);
 
 void txDoneCB()
 {
+    printf("tx done\r\n");
+    
+    Radio::Rx(0);
+}
+
+void first_send()
+{
+    HAL_Delay(1000);
+    Radio::radio.tx_buf[0] = 100;  /* set payload */
+    Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    printf("send first message\r\n");
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
@@ -37,11 +48,7 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     // printf("\r\n");4
     printf("received data: %d\r\n", Radio::radio.rx_buf[0]);
     if (Radio::radio.rx_buf[0] == 99)
-    {
-        Radio::radio.tx_buf[0] = 99;  /* set payload */
-        Radio::Send(1, 0, 0, 0);   /* begin transmission */
-        printf("sent\r\n");
-    }
+    {first_send();}
 }
 
 const RadioEvents_t rev = {
