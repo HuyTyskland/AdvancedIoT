@@ -1,7 +1,6 @@
 #include "radio.h"
 #include <cstdint>
 #include <cstdio>
-#include <inttypes.h>
 
 #if defined(SX128x_H)
     #define BW_KHZ              200
@@ -32,8 +31,8 @@ uint32_t time_difference = 0;
 
 uint8_t send_countdown = 5;
 
-TIM_HandleTypeDef htim10;
-static void MX_TIM10_Init(void)
+TIM_HandleTypeDef htim2;
+static void MX_TIM2_Init(void)
 {
 
   /* USER CODE BEGIN TIM10_Init 0 */
@@ -43,13 +42,13 @@ static void MX_TIM10_Init(void)
   /* USER CODE BEGIN TIM10_Init 1 */
 
   /* USER CODE END TIM10_Init 1 */
-  htim10.Instance = TIM10;
-  htim10.Init.Prescaler = 0;
-  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim10.Init.Period = 65535;
-  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  //htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 0xFFFF;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  //htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
     printf("Error Error\r\n");
   }
@@ -69,7 +68,7 @@ void tx_test()
     Radio::radio.tx_buf[0] = seq++;  /* set payload */
     printf("send a ready message\r\n");
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    send_time = __HAL_TIM_GET_COUNTER(&htim10);
+    send_time = __HAL_TIM_GET_COUNTER(&htim2);
     // printf("send_time: %" PRIu32 "\n", send_time);
 
 /*    {
@@ -83,7 +82,7 @@ void tx_test()
     if (send_countdown == 0)
     {
         Radio::Rx(0);
-        // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim10);
+        // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim2);
         // printf("shift_time: %" PRIu32 "\n", shift_time);
         // mode_changing_time = shift_time - send_time;
         // printf("mode_changing_time: %" PRIu32 "\n", mode_changing_time);
@@ -101,12 +100,13 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
 {
     if (Radio::radio.rx_buf[0] == 100)
     {
-        receive_time = __HAL_TIM_GET_COUNTER(&htim10);
-        printf("receive_time: %" PRIu32 "\n", receive_time);
-        printf("send_time: %" PRIu32 "\n", send_time);
-        time_difference = (receive_time - send_time - DELAY_TIME)/2;
+        receive_time = __HAL_TIM_GET_COUNTER(&htim2);
+        printf("receive_time: %lu\n", (unsigned long)receive_time);
+        printf("send_time: %lu\n", (unsigned long)send_time);
+        time_difference = (receive_time - send_time)/2;
+        printf("time_difference: %lu\n", (unsigned long)time_difference);
         uint32_t distance = time_difference * 10 / 3;
-        printf("Distance: %" PRIu32 "\n", distance);
+        printf("Distance: %lu\n", (unsigned long)distance);
     }
     Radio::radio.tx_buf[0] = 0;  /* set payload */
     Radio::Send(1, 0, 0, 0);
@@ -139,7 +139,7 @@ int main()
 {
     printf("\r\nreset-tx ");
 
-    __HAL_RCC_TIM10_CLK_ENABLE(); // Enable clock for timer
+    __HAL_RCC_TIM2_CLK_ENABLE(); // Enable clock for timer
     Radio::Init(&rev);
 
     Radio::Standby();
@@ -150,12 +150,12 @@ int main()
 
                // preambleLen, fixLen, crcOn, invIQ
     Radio::LoRaPacketConfig(8, false, true, false);
-    MX_TIM10_Init();
-    HAL_TIM_Base_Start_IT(&htim10);
-    // uint16_t timer_val = __HAL_TIM_GET_COUNTER(&htim10); // get the counter value of timer
+    MX_TIM2_Init();
+    HAL_TIM_Base_Start_IT(&htim2);
+    // uint16_t timer_val = __HAL_TIM_GET_COUNTER(&htim2); // get the counter value of timer
     // while (1) {
     //     HAL_Delay(500);
-    //     timer_val = __HAL_TIM_GET_COUNTER(&htim10) - timer_val;
+    //     timer_val = __HAL_TIM_GET_COUNTER(&htim2) - timer_val;
     //     printf("\r\ntimer value = %d", timer_val);
     // }
 
