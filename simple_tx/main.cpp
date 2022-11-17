@@ -35,26 +35,39 @@ TIM_HandleTypeDef htim2;
 static void MX_TIM2_Init(void)
 {
 
-  /* USER CODE BEGIN TIM10_Init 0 */
+  /* USER CODE BEGIN TIM2_Init 0 */
 
-  /* USER CODE END TIM10_Init 0 */
+  /* USER CODE END TIM2_Init 0 */
 
-  /* USER CODE BEGIN TIM10_Init 1 */
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE END TIM10_Init 1 */
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0xFFFF;
+  htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  //htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
-    printf("Error Error\r\n");
+    printf("Error\r\n");
   }
-  /* USER CODE BEGIN TIM10_Init 2 */
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    printf("Error\r\n");
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    printf("Error\r\n");
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
 
-  /* USER CODE END TIM10_Init 2 */
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
@@ -103,7 +116,7 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
         receive_time = __HAL_TIM_GET_COUNTER(&htim2);
         printf("receive_time: %lu\n", (unsigned long)receive_time);
         printf("send_time: %lu\n", (unsigned long)send_time);
-        time_difference = (receive_time - send_time)/2;
+        time_difference = (receive_time - send_time - DELAY_TIME)/2;
         printf("time_difference: %lu\n", (unsigned long)time_difference);
         uint32_t distance = time_difference * 10 / 3;
         printf("Distance: %lu\n", (unsigned long)distance);
