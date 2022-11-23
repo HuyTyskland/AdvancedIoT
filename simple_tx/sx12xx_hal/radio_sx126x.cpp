@@ -1,4 +1,5 @@
 #include "radio.h"
+#include <cstdint>
 #ifdef SX126x_H 
 #include "SPIu.h"
 
@@ -10,6 +11,8 @@ Timer Radio::lpt;
 
 #if (MBED_MAJOR_VERSION < 6)
 volatile us_timestamp_t Radio::irqAt;
+volatile uint32_t Radio::irqAt_ns;
+
 #else
 LowPowerClock::time_point Radio::irqAt;
 #endif

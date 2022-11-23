@@ -1,4 +1,5 @@
 #include "sx12xx.h"
+#include <cstdint>
 #ifdef SX127x_H 
 #include "sx127x_lora.h"
 #include "sx127x_fsk.h"
@@ -89,6 +90,7 @@ class Radio {
 		static uint32_t lora_toa_us(uint8_t pktLen);
     #if (MBED_MAJOR_VERSION < 6)
         static volatile us_timestamp_t irqAt;
+        static volatile uint32_t irqAt_ns;
     #else
         static LowPowerClock::time_point irqAt;
     #endif

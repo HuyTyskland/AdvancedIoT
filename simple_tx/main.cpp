@@ -29,7 +29,7 @@ uint32_t receive_time = 0;
 uint32_t mode_changing_time = 0;
 uint32_t time_difference = 0;
 
-uint8_t response_countdown = 20;
+uint8_t response_countdown = 10;
 uint8_t send_countdown = 5;
 
 TIM_HandleTypeDef htim2;
@@ -107,19 +107,22 @@ void tx_test()
 
 void txDoneCB()
 {
-    send_time = __HAL_TIM_GET_COUNTER(&htim2);
+    send_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
     send_countdown--;
     queue.call_in(500, tx_test);
+
+    //printf("Done sending time: %llu\n", Radio::irqAt);
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
+    //printf("Done receiving time: %llu\n", Radio::irqAt);
     if (Radio::radio.rx_buf[0] == 100)
     {
-        receive_time = __HAL_TIM_GET_COUNTER(&htim2);
+        receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
         response_countdown--;
         time_difference = (receive_time - send_time - DELAY_TIME)/2;
-        printf("time_difference: %lu\n", (unsigned long)time_difference);
+        printf("time_difference: %u\n", time_difference);
     }
     
     if (response_countdown != 0)
@@ -139,6 +142,7 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
 
 void radio_irq_callback()
 {
+    Radio::irqAt_ns = __HAL_TIM_GET_COUNTER(&htim2);
     queue.call(Radio::service);
 }
 
