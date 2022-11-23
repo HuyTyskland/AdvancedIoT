@@ -12,7 +12,7 @@
         #define TX_DBM              20
     #endif
     #define BW_KHZ              125
-    #define SPREADING_FACTOR    7
+    #define SPREADING_FACTOR    12
     #define CF_HZ               868300000
 #endif
 

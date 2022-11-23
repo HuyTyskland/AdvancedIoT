@@ -14,7 +14,7 @@
         #define TX_DBM              20
     #endif
     #define BW_KHZ              125
-    #define SPREADING_FACTOR    7
+    #define SPREADING_FACTOR    12
     #define CF_HZ               868300000
 #endif
 
@@ -29,6 +29,7 @@ uint32_t receive_time = 0;
 uint32_t mode_changing_time = 0;
 uint32_t time_difference = 0;
 
+uint8_t response_countdown = 20;
 uint8_t send_countdown = 5;
 
 TIM_HandleTypeDef htim2;
@@ -79,9 +80,11 @@ void tx_test()
 {
 
     Radio::radio.tx_buf[0] = seq++;  /* set payload */
-    printf("send a ready message\r\n");
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    send_time = __HAL_TIM_GET_COUNTER(&htim2);
+    if (send_countdown == 5)
+    {
+        printf("Start a phase\n");
+    }
     // printf("send_time: %" PRIu32 "\n", send_time);
 
 /*    {
@@ -104,7 +107,7 @@ void tx_test()
 
 void txDoneCB()
 {
-    printf("got-TX-done\r\n");
+    send_time = __HAL_TIM_GET_COUNTER(&htim2);
     send_countdown--;
     queue.call_in(500, tx_test);
 }
@@ -114,18 +117,22 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     if (Radio::radio.rx_buf[0] == 100)
     {
         receive_time = __HAL_TIM_GET_COUNTER(&htim2);
-        printf("receive_time: %lu\n", (unsigned long)receive_time);
-        printf("send_time: %lu\n", (unsigned long)send_time);
+        response_countdown--;
         time_difference = (receive_time - send_time - DELAY_TIME)/2;
         printf("time_difference: %lu\n", (unsigned long)time_difference);
-        uint32_t distance = time_difference * 10 / 3;
-        printf("Distance: %lu\n", (unsigned long)distance);
     }
-    Radio::radio.tx_buf[0] = 0;  /* set payload */
-    Radio::Send(1, 0, 0, 0);
-    printf("start measuring again\r\n");
-    send_countdown = 6;
-    seq = 95;
+    
+    if (response_countdown != 0)
+    {
+        Radio::radio.tx_buf[0] = 0;  /* set payload */
+        Radio::Send(1, 0, 0, 0);
+        send_countdown = 6;
+        seq = 95;
+    }
+    if (response_countdown == 0)
+    {
+        printf("DONE RECORDING\n");
+    }
     //queue.call_in(500, tx_test);
 }
 
