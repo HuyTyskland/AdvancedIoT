@@ -29,7 +29,7 @@ uint32_t receive_time = 0;
 uint32_t mode_changing_time = 0;
 uint32_t time_difference = 0;
 
-uint8_t response_countdown = 10;
+uint8_t response_countdown = 30;
 uint8_t send_countdown = 5;
 
 TIM_HandleTypeDef htim2;
@@ -81,10 +81,10 @@ void tx_test()
 
     Radio::radio.tx_buf[0] = seq++;  /* set payload */
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    if (send_countdown == 5)
-    {
-        printf("Start a phase\n");
-    }
+    // if (send_countdown == 5)
+    // {
+    //     printf("Start a phase\n");
+    // }
     // printf("send_time: %" PRIu32 "\n", send_time);
 
 /*    {
@@ -109,7 +109,7 @@ void txDoneCB()
 {
     send_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
     send_countdown--;
-    queue.call_in(500, tx_test);
+    queue.call_in(100, tx_test);
 
     //printf("Done sending time: %llu\n", Radio::irqAt);
 }
@@ -122,7 +122,7 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
         receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
         response_countdown--;
         time_difference = (receive_time - send_time - DELAY_TIME)/2;
-        printf("time_difference: %u\n", time_difference);
+        printf("%u, ", time_difference);
     }
     
     if (response_countdown != 0)
