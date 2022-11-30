@@ -47,7 +47,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 0;//0x40;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -121,8 +121,8 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     {
         receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
         response_countdown--;
-        time_difference = (receive_time - send_time - DELAY_TIME)/2;
-        printf("%u, ", time_difference);
+        time_difference = (receive_time - send_time)/2;
+        printf(" %u, ", time_difference);
     }
     
     if (response_countdown != 0)

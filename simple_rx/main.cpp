@@ -74,13 +74,13 @@ void txDoneCB()
 {
     //printf("tx done\r\n");
     //send_time = __HAL_TIM_GET_COUNTER(&htim2);
-    printf("%u, ", send_time - receive_time);
+    printf(" %u,%u, ", send_time, receive_time);
     Radio::Rx(0);
 }
 
 void first_send()
 {
-    HAL_Delay(1000);
+    //HAL_Delay(1000);
     Radio::radio.tx_buf[0] = 100;  /* set payload */
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
     //printf("send first message\r\n");
