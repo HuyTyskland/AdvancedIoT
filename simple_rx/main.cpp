@@ -21,6 +21,12 @@ DigitalOut myled(LED1);
 uint32_t receive_time = 0;
 uint32_t send_time = 0;
 
+#define NODE1_RESPONSE 11
+#define NODE2_RESPONSE 22
+
+#define NODE1_TRIGGER 94
+#define NODE2_TRIGGER 99
+
 /**********************************************************************/
 TIM_HandleTypeDef htim2;
 static void MX_TIM2_Init(void)
@@ -74,16 +80,16 @@ void txDoneCB()
 {
     //printf("tx done\r\n");
     //send_time = __HAL_TIM_GET_COUNTER(&htim2);
-    printf(" %u,%u, ", send_time, receive_time);
+    //printf(" %u,%u, ", send_time, receive_time);
     Radio::Rx(0);
 }
 
 void first_send()
 {
     //HAL_Delay(1000);
-    Radio::radio.tx_buf[0] = 100;  /* set payload */
+    Radio::radio.tx_buf[0] = NODE1_RESPONSE;  /* set payload */
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
-    //printf("send first message\r\n");
+    printf("send response message\r\n");
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
@@ -98,8 +104,8 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     // }
     // printf("\r\n");4
     receive_time = __HAL_TIM_GET_COUNTER(&htim2);
-    //printf("received data: %d\r\n", Radio::radio.rx_buf[0]);
-    if (Radio::radio.rx_buf[0] == 99)
+    printf("received data: %d\r\n", Radio::radio.rx_buf[0]);
+    if (Radio::radio.rx_buf[0] == NODE1_TRIGGER)
     {first_send();}
 }
 

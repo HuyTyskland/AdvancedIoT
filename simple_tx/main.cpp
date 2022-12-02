@@ -19,18 +19,22 @@
 #endif
 
 /**********************************************************************/
+#define BEGIN_NUMBER 90 // substract by 5 every anchor node, start from 95
+#define ANCHOR_NUM 2 // the number of anchor node
+#define ANCHOR1_RESPONSE 11
+#define ANCHOR2_RESPONSE 22
+#define SENT_MESSAGE_NUM 5
+uint32_t time_difference[ANCHOR_NUM] = {0,0}; // number of 0 equal to number of anchor nodes - ANCHOR_NUM
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
-#define DELAY_TIME 90000000
-uint8_t seq = 95;
+uint8_t seq = BEGIN_NUMBER;
 
 // Time-difference measure
 uint32_t send_time = 0;
 uint32_t receive_time = 0;
 uint32_t mode_changing_time = 0;
-uint32_t time_difference = 0;
 
-uint8_t response_countdown = 30;
-uint8_t send_countdown = 5;
+uint8_t response_countdown = 10; // the number of sample * the number of anchor nodes. 2 anchor nodes * 15 samples = 30
+uint8_t send_countdown = SENT_MESSAGE_NUM*ANCHOR_NUM; // 5*n with n = the number of anchor nodes
 
 TIM_HandleTypeDef htim2;
 static void MX_TIM2_Init(void)
@@ -72,15 +76,12 @@ static void MX_TIM2_Init(void)
 
 }
 
-void rx_test()
-{
-}
-
 void tx_test()
 {
 
     Radio::radio.tx_buf[0] = seq++;  /* set payload */
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
+    printf("sent %d\n", Radio::radio.tx_buf[0]);
     // if (send_countdown == 5)
     // {
     //     printf("Start a phase\n");
@@ -95,42 +96,62 @@ void tx_test()
         printf("Sleep time: %llu ", stats.sleep_time / 1000);
         printf("Deep Sleep: %llu\r\n", stats.deep_sleep_time / 1000);
     }*/
-    if (send_countdown == 0)
-    {
-        Radio::Rx(0);
-        // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim2);
-        // printf("shift_time: %" PRIu32 "\n", shift_time);
-        // mode_changing_time = shift_time - send_time;
-        // printf("mode_changing_time: %" PRIu32 "\n", mode_changing_time);
-    }
 }
 
 void txDoneCB()
 {
     send_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
     send_countdown--;
-    queue.call_in(100, tx_test);
 
-    //printf("Done sending time: %llu\n", Radio::irqAt);
+    printf("send_countdown: %d\n", send_countdown);
+    if ((send_countdown == 0) || (send_countdown == 5)) // add more expression if there are more anchor node
+    {
+        Radio::Rx(0);
+        // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim2);
+        // printf("shift_time: %" PRIu32 "\n", shift_time);
+        // mode_changing_time = shift_time - send_time;
+        // printf("mode_changing_time: %" PRIu32 "\n", mode_changing_time);
+    } else {
+        queue.call_in(100, tx_test);
+    }
 }
 
 void rxDoneCB(uint8_t size, float rssi, float snr)
 {
     //printf("Done receiving time: %llu\n", Radio::irqAt);
-    if (Radio::radio.rx_buf[0] == 100)
+    if (Radio::radio.rx_buf[0] == ANCHOR1_RESPONSE) // anchor node 1
     {
         receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
+        time_difference[0] = (receive_time - send_time)/2;
+        printf("received from anchor1 \n");
+    }
+
+    if (Radio::radio.rx_buf[0] == ANCHOR2_RESPONSE) // anchor node 2
+    {
+        receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
+        time_difference[1] = (receive_time - send_time)/2;
+        printf("received from anchor2 \n");
+    }
+
+    if(send_countdown == 0)
+    {
+        printf(" ,");
+        for (int i = 0; i < ANCHOR_NUM; i++)
+        {
+            printf("%u,", time_difference[i]);
+            time_difference[i] = 0;
+        }
         response_countdown--;
-        time_difference = (receive_time - send_time)/2;
-        printf(" %u, ", time_difference);
+    } else {
+        queue.call_in(100, tx_test);
     }
     
-    if (response_countdown != 0)
+    if ((response_countdown != 0) && (send_countdown == 0))
     {
         Radio::radio.tx_buf[0] = 0;  /* set payload */
         Radio::Send(1, 0, 0, 0);
-        send_countdown = 6;
-        seq = 95;
+        send_countdown = SENT_MESSAGE_NUM*ANCHOR_NUM + 1;
+        seq = BEGIN_NUMBER;
     }
     if (response_countdown == 0)
     {
