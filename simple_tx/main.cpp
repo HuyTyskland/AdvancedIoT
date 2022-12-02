@@ -23,7 +23,7 @@
 #define ANCHOR_NUM 2 // the number of anchor node
 #define ANCHOR1_RESPONSE 11
 #define ANCHOR2_RESPONSE 22
-#define SENT_MESSAGE_NUM 5
+#define SENT_MESSAGE_NUM 2
 uint32_t time_difference[ANCHOR_NUM] = {0,0}; // number of 0 equal to number of anchor nodes - ANCHOR_NUM
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
 uint8_t seq = BEGIN_NUMBER;
@@ -104,7 +104,7 @@ void txDoneCB()
     send_countdown--;
 
     printf("send_countdown: %d\n", send_countdown);
-    if ((send_countdown == 0) || (send_countdown == 5)) // add more expression if there are more anchor node
+    if ((send_countdown == 0) || (send_countdown == 2)) // add more expression if there are more anchor node
     {
         Radio::Rx(0);
         // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim2);

@@ -24,8 +24,8 @@ uint32_t send_time = 0;
 #define NODE1_RESPONSE 11
 #define NODE2_RESPONSE 22
 
-#define NODE1_TRIGGER 94
-#define NODE2_TRIGGER 99
+#define NODE1_TRIGGER 91
+#define NODE2_TRIGGER 93
 
 /**********************************************************************/
 TIM_HandleTypeDef htim2;
@@ -87,7 +87,7 @@ void txDoneCB()
 void first_send()
 {
     //HAL_Delay(1000);
-    Radio::radio.tx_buf[0] = NODE1_RESPONSE;  /* set payload */
+    Radio::radio.tx_buf[0] = NODE2_RESPONSE;  /* set payload */
     Radio::Send(1, 0, 0, 0);   /* begin transmission */
     printf("send response message\r\n");
 }
@@ -105,7 +105,7 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     // printf("\r\n");4
     receive_time = __HAL_TIM_GET_COUNTER(&htim2);
     printf("received data: %d\r\n", Radio::radio.rx_buf[0]);
-    if (Radio::radio.rx_buf[0] == NODE1_TRIGGER)
+    if (Radio::radio.rx_buf[0] == NODE2_TRIGGER)
     {first_send();}
 }
 
