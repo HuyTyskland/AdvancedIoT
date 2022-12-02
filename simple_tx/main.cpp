@@ -20,11 +20,12 @@
 
 /**********************************************************************/
 #define BEGIN_NUMBER 90 // substract by 5 every anchor node, start from 95
-#define ANCHOR_NUM 2 // the number of anchor node
+#define ANCHOR_NUM 3 // the number of anchor node
 #define ANCHOR1_RESPONSE 11
 #define ANCHOR2_RESPONSE 22
+#define ANCHOR3_RESPONSE 33
 #define SENT_MESSAGE_NUM 2
-uint32_t time_difference[ANCHOR_NUM] = {0,0}; // number of 0 equal to number of anchor nodes - ANCHOR_NUM
+uint32_t time_difference[ANCHOR_NUM] = {0,0,0}; // number of 0 equal to number of anchor nodes - ANCHOR_NUM
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
 uint8_t seq = BEGIN_NUMBER;
 
@@ -104,7 +105,7 @@ void txDoneCB()
     send_countdown--;
 
     printf("send_countdown: %d\n", send_countdown);
-    if ((send_countdown == 0) || (send_countdown == 2)) // add more expression if there are more anchor node
+    if ((send_countdown == 0) || (send_countdown == 2) || (send_countdown == 4)) // add more expression if there are more anchor node
     {
         Radio::Rx(0);
         // uint32_t shift_time = __HAL_TIM_GET_COUNTER(&htim2);
@@ -131,6 +132,13 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
         receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
         time_difference[1] = (receive_time - send_time)/2;
         printf("received from anchor2 \n");
+    }
+
+    if (Radio::radio.rx_buf[0] == ANCHOR3_RESPONSE) // anchor node 2
+    {
+        receive_time = Radio::irqAt_ns;//__HAL_TIM_GET_COUNTER(&htim2);
+        time_difference[2] = (receive_time - send_time)/2;
+        printf("received from anchor3 \n");
     }
 
     if(send_countdown == 0)
