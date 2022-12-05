@@ -19,9 +19,10 @@
 #endif
 
 /**********************************************************************/
+#define BEGIN_NUMBER 98
+#define INIT_SEND_COUNTDOWN 2
 EventQueue queue(4 * EVENTS_EVENT_SIZE);
-#define DELAY_TIME 90000000
-uint8_t seq = 95;
+uint8_t seq = BEGIN_NUMBER;
 
 // Time-difference measure
 uint32_t send_time = 0;
@@ -29,8 +30,8 @@ uint32_t receive_time = 0;
 uint32_t mode_changing_time = 0;
 uint32_t time_difference = 0;
 
-uint8_t response_countdown = 30;
-uint8_t send_countdown = 5;
+uint16_t response_countdown = 30;
+uint8_t send_countdown = INIT_SEND_COUNTDOWN;
 
 TIM_HandleTypeDef htim2;
 static void MX_TIM2_Init(void)
@@ -129,8 +130,8 @@ void rxDoneCB(uint8_t size, float rssi, float snr)
     {
         Radio::radio.tx_buf[0] = 0;  /* set payload */
         Radio::Send(1, 0, 0, 0);
-        send_countdown = 6;
-        seq = 95;
+        send_countdown = INIT_SEND_COUNTDOWN + 1;
+        seq = BEGIN_NUMBER;
     }
     if (response_countdown == 0)
     {
